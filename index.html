@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1412">
+<meta name="description" content="동물로 변신하며 안개 숲을 정화하는 탑다운 액션 로그라이크">
+<title>로그라이크-드루이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Noto+Sans+KR:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<style>body{margin:0}</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv" aria-label="게임 화면"></canvas></div>
+
+<div class="hud" id="hud" hidden>
+  <div class="row">
+    <div class="plate">
+      <div class="medal" id="medal"><canvas id="medalCv" aria-hidden="true"></canvas></div>
+      <div class="plate-bars">
+        <div class="plate-top"><b class="fname-hud" id="formName">늑대</b><span class="role-hud" id="formRole">다수전</span></div>
+        <div class="hpbar" aria-label="체력"><i class="trail" id="hptrail"></i><i class="fill" id="hpfill"></i><span class="hpnum"><b id="hptext">100</b><small>/100</small></span></div>
+        <div class="wildbar" id="wildbar"><i id="wildfill"></i></div>
+        <div class="wildrow"><span class="lbl">야성</span><span class="wildhint" id="wildhint"></span></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="pill"><span>방</span><b id="wavetext">1</b></div>
+      <div class="pill seeds"><span class="sicon" id="seedIcon"></span><b id="seedtext">0</b></div>
+      <div class="pill"><span>정화</span><b id="killtext">0</b></div>
+      <button class="gear" id="gear" type="button" aria-label="일시정지와 연출 설정">❚❚</button>
+    </div>
+  </div>
+  <div class="actionbar pc-only">
+    <div class="aslots" id="pcSlots"></div>
+    <div class="adiv"></div>
+    <div class="abtn" id="abAtk"><span class="aicon" id="atkIcon"></span><kbd>좌클릭</kbd></div>
+    <div class="abtn" id="cdSkill"><span class="aicon" id="skillIcon"></span><kbd>우클릭</kbd></div>
+    <div class="abtn" id="abDodge"><span class="aicon" id="dodgeIcon"></span><span class="pips" id="cdDodge"></span><kbd>Space</kbd></div>
+    <div class="abtn ultb" id="abUlt"><span class="aicon" id="ultIcon"></span><kbd>R 야성</kbd></div>
+    <div class="aname"><b id="skillName">돌진 물기</b><span id="dodgeName">회피</span></div>
+  </div>
+</div>
+
+<div id="touch" hidden>
+  <div class="tslots" id="tSlots"></div>
+  <button class="tb ult" id="tUlt" type="button" aria-label="야성 해방"><span class="ticon" id="tUltIcon"></span></button>
+  <button class="tb skill" id="tSkill" type="button" aria-label="형태 스킬, 끌어서 방향 지정"><span class="ticon" id="tSkillIcon"></span><small id="tSkillName">돌진</small></button>
+  <button class="tb dodge" id="tDodge" type="button" aria-label="회피"><span class="ticon" id="tDodgeIcon"></span><em id="tDodgeN">2</em></button>
+  <button class="tb atk" id="tAtk" type="button" aria-label="공격, 누르고 있으면 계속 공격"><span class="ticon big" id="tAtkIcon"></span></button>
+</div>
+
+<div class="home" id="start">
+  <div class="home-left">
+    <p class="eyebrow">버전 1.0 · 숲의 안개를 걷어내라</p>
+    <h1 class="logo" aria-label="로그라이크-드루이드"><span class="t1" aria-hidden="true">로그라이크</span><span class="t2" aria-hidden="true"><i class="eye"></i>드루이드</span></h1>
+    <p class="tagline">안개에 잠긴 숲의 마지막 드루이드. 늑대로 무리를 쓸고, 곰으로 버티고, 매로 파고듭니다.</p>
+    <div class="home-actions">
+      <button class="btn primary big" id="btnStart" type="button">숲으로 들어가기 <kbd class="pc-only">Enter</kbd></button>
+      <div class="home-meta">
+        <button class="acctchip" id="acctChip" type="button" hidden></button>
+        <button class="btn sanctb" id="btnSanct" type="button"><span class="dg-ic" aria-hidden="true"></span>숲의 성소<span class="dewpill" aria-label="달빛 이슬"><b id="homeDew">0</b></span></button>
+        <div class="mistsel" id="mistSel" hidden>
+          <button type="button" class="mstep" id="mistDown" aria-label="안개 단계 낮추기">‹</button>
+          <span class="mistnow"><small>안개 단계</small><b id="mistLv">0</b></span>
+          <button type="button" class="mstep" id="mistUp" aria-label="안개 단계 올리기">›</button>
+          <span class="mistdesc" id="mistDesc"></span>
+        </div>
+      </div>
+      <div class="home-sub">
+        <button class="btn ghost" id="btnHelp" type="button">조작법</button>
+        <button class="btn ghost" id="btnFx" type="button">연출 설정</button>
+        <button class="btn ghost" id="btnBoss" type="button">보스 연습</button>
+      </div>
+    </div>
+    <p class="hint" id="rotateHint" hidden>휴대폰을 가로로 돌리면 더 넓게 보여요.</p>
+  </div>
+  <div class="home-right">
+    <div class="roster-head"><h2>편성</h2><span id="rosterHint">칸을 누른 뒤 아래에서 형태를 고르면 바뀝니다</span></div>
+    <div class="roster" id="roster"></div>
+    <div class="pool" id="pool" aria-label="형태 보관함"></div>
+  </div>
+</div>
+
+<div class="overlay" id="pause" hidden>
+  <div class="panel">
+    <p class="eyebrow" id="pauseEyebrow">일시정지</p>
+    <h2 class="title" style="font-size:clamp(28px,6vw,40px)">연출 조정</h2>
+    <p class="lead">하나씩 끄고 켜보며 손맛이 어디서 나오는지 비교해보세요.</p>
+    <div class="toggles">
+      <label class="tg" for="fxHitstop"><span><b>히트스톱</b><small>타격 순간 화면이 잠깐 멈춤</small></span><input type="checkbox" id="fxHitstop"></label>
+      <label class="tg" for="fxShake"><span><b>화면 흔들림</b><small>강타·진입 일격·내려찍기에서 더 크게</small></span><input type="checkbox" id="fxShake"></label>
+      <label class="tg" for="fxNumbers"><span><b>데미지 숫자</b><small>치명타는 크고 노랗게</small></span><input type="checkbox" id="fxNumbers"></label>
+      <label class="tg" for="fxSound"><span><b>효과음 켜기</b><small>연타가 쌓일수록 타격음이 높아짐</small></span><input type="checkbox" id="fxSound"></label>
+      <label class="tg" for="fxVibrate"><span><b>진동</b><small>안드로이드 브라우저에서만 작동</small></span><input type="checkbox" id="fxVibrate"></label>
+    </div>
+    <div class="box" id="ownedBox"><h3>보유 축복</h3><div class="owned" id="ownedList"></div></div>
+    <div class="range">
+      <label for="fxIntensity">연출 강도 <output id="fxIntensityOut">100%</output></label>
+      <input type="range" id="fxIntensity" min="50" max="150" step="10" value="100">
+    </div>
+    <div class="range">
+      <label for="fxMusic">배경음 <output id="fxMusicOut">70%</output></label>
+      <input type="range" id="fxMusic" min="0" max="100" step="5" value="70">
+    </div>
+    <div class="range">
+      <label for="fxSfx">효과음 크기 <output id="fxSfxOut">100%</output></label>
+      <input type="range" id="fxSfx" min="0" max="100" step="5" value="100">
+    </div>
+    <div class="btns">
+      <button class="btn primary" id="btnResume" type="button">계속하기</button>
+      <button class="btn" id="btnRestart" type="button">처음부터</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="over" hidden>
+  <div class="panel">
+    <p class="eyebrow">안개에 삼켜졌다</p>
+    <h2 class="title">쓰러졌다</h2>
+    <dl class="stats">
+      <div><dt>도달한 곳</dt><dd id="stWave">1</dd></div>
+      <div><dt>정화한 적</dt><dd id="stKills">0</dd></div>
+      <div><dt>최고 연타</dt><dd id="stCombo">0</dd></div>
+    </dl>
+    <div id="overDew"></div>
+    <div class="btns">
+      <button class="btn primary" id="btnAgain" type="button">다시 하기</button>
+      <button class="btn" id="btnRoster" type="button">편성 바꾸기</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay sanct" id="sanct" hidden>
+  <div class="panel spanel" role="dialog" aria-labelledby="sanctTitle">
+    <div class="shead">
+      <div><p class="eyebrow">영구 성장</p><h2 class="ctitle" id="sanctTitle">숲의 성소</h2></div>
+      <div class="dewbig"><span class="dg-ic" aria-hidden="true"></span><b id="dewText">0</b><small>달빛 이슬</small></div>
+    </div>
+    <div class="stabs" role="tablist">
+      <button type="button" class="stab" role="tab" data-tab="tree">생명의 나무</button>
+      <button type="button" class="stab" role="tab" data-tab="altar">정령의 제단</button>
+      <button type="button" class="stab" role="tab" data-tab="slab">형태의 석판</button>
+      <button type="button" class="stab" role="tab" data-tab="mist">안개 단계</button>
+      <button type="button" class="stab" role="tab" data-tab="codex">기록의 나무</button>
+      <button type="button" class="stab" role="tab" data-tab="rank">친구 순위</button>
+    </div>
+    <div class="sbody" id="sbody"></div>
+    <div class="cfoot"><button class="btn primary" id="btnSanctClose" type="button">돌아가기</button></div>
+  </div>
+</div>
+
+<div class="overlay choice" id="choice" hidden>
+  <div class="panel cpanel">
+    <div class="crest" id="chCrest" hidden></div>
+    <p class="eyebrow" id="chEyebrow"></p>
+    <h2 class="ctitle" id="chTitle"></h2>
+    <div class="orn" aria-hidden="true"></div>
+    <p class="csub" id="chSub"></p>
+    <div class="route" id="chRoute"></div>
+    <div class="cards" id="chCards"></div>
+    <div class="cfoot" id="chFoot"></div>
+  </div>
+</div>
+
+<div class="overlay" id="help" hidden>
+  <div class="panel">
+    <p class="eyebrow">PC · 모바일</p>
+    <h2 class="title" style="font-size:clamp(28px,6vw,40px)">조작법</h2>
+    <div class="controls">
+      <section class="box">
+        <h3>PC</h3>
+        <dl>
+          <dt>WASD</dt><dd>이동</dd>
+          <dt>좌클릭</dt><dd>기본 공격 (누르고 있기)</dd>
+          <dt>우클릭</dt><dd>형태 스킬</dd>
+          <dt>Space</dt><dd>형태별 회피</dd>
+          <dt>1 · 2 · 3</dt><dd>슬롯 형태로 변신 (휠도 가능)</dd>
+          <dt>R</dt><dd>야성 해방 (게이지 가득)</dd>
+          <dt>Esc</dt><dd>일시정지 · 연출 설정</dd>
+        </dl>
+      </section>
+      <section class="box">
+        <h3>모바일</h3>
+        <dl>
+          <dt>왼쪽</dt><dd>누른 자리에 조이스틱</dd>
+          <dt>공격</dt><dd>누르고 있기, 자동 조준</dd>
+          <dt>스킬</dt><dd>탭은 자동, 끌면 방향 지정</dd>
+          <dt>슬롯</dt><dd>공격 버튼 위 세 칸으로 변신</dd>
+          <dt>야성</dt><dd>게이지가 차면 빛나는 버튼</dd>
+        </dl>
+      </section>
+    </div>
+    <div class="box">
+      <h3>형태별 버튼</h3>
+      <div class="tablewrap">
+        <table class="ftable">
+          <thead><tr><th>형태</th><th>공격</th><th>스킬</th><th>회피</th><th>진입 일격</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--wolf)">늑대</td><td>3연타</td><td>돌진 물기</td><td>대시 2회</td><td>회오리 할퀴기</td></tr>
+            <tr><td style="color:var(--bear)">곰</td><td>앞발 강타</td><td>대지 내려찍기</td><td>웅크리기 · 직전에 누르면 반격</td><td>착지 충격파</td></tr>
+            <tr><td style="color:var(--hawk)">매</td><td>깃털 연사</td><td>급강하</td><td>상승</td><td>돌풍</td></tr>
+            <tr><td style="color:#8fd16a">뱀</td><td>물기 · 독 1중첩</td><td>독 안개 장판</td><td>땅 파고들기 2회</td><td>독 비늘 흩뿌리기</td></tr>
+            <tr><td style="color:#6fc2a8">거북</td><td>등껍질 휘두르기</td><td>껍질 반사 · 투사체 되받기</td><td>껍질 숨기 · 1초 무적</td><td>굴러오기 + 보호막</td></tr>
+            <tr><td style="color:#e8b64c">표범</td><td>빠른 2연타 · 등 뒤는 치명타</td><td>그림자 도약 · 등 뒤로 확정 치명타</td><td>그림자 이동 2회</td><td>기습</td></tr>
+            <tr><td style="color:#b7e39a">사슴</td><td>뿔 들이받기</td><td>생명의 숲 · 회복과 공격력</td><td>뛰어오르기</td><td>치유의 울림 · 둔화</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mini">야성 해방: 해방하는 순간의 형태가 몸통(기본 공격)이 되고, 나머지 두 형태가 앞 슬롯부터 스킬과 회피를 빌려줍니다. 편성한 세 형태의 특성도 모두 붙습니다 — 늑대 처치 시 영혼, 곰 피해 감소, 매 깃털, 뱀 독, 거북 자동 반사, 표범 치명타, 사슴 회복.</p>
+      <div hidden>
+      </div>
+    </div>
+    <div class="box">
+      <h3>적</h3>
+      <div class="tablewrap">
+        <table class="ftable">
+          <thead><tr><th>적</th><th>행동</th><th>공략</th></tr></thead>
+          <tbody>
+            <tr><td>안개 쥐</td><td>떼로 몰려옴</td><td>늑대 연타</td></tr>
+            <tr><td>가시 덩굴</td><td>제자리에서 가시 부채꼴</td><td>매로 멀리서, 매 진입 돌풍이 가시를 지움</td></tr>
+            <tr><td>바위껍질 멧돼지</td><td>예고 후 일직선 돌진, 정면 단단함</td><td>곰 웅크리기로 받기, 옆이나 뒤 공격</td></tr>
+            <tr><td>독포자 버섯</td><td>죽으면 독 구름</td><td>멀리서 처리, 매 상승으로 피하기</td></tr>
+            <tr><td>그림자 까마귀</td><td>날다가 내려찍기</td><td>날 때는 깃털만 맞음, 내려온 뒤 반격</td></tr>
+            <tr><td>타락한 사슴 기사</td><td>방패로 막고 창 찌르기</td><td>강타로 방패 깨기, 느리게 돌아서니 뒤로</td></tr>
+            <tr><td style="color:var(--amber)">뿌리왕 (1지역)</td><td>뿌리 솟구침, 회전 가시, 휩쓸기, 2페이즈 소환</td><td>강타·진입 일격·반격으로 그로기를 채우기, 가시 회전이 끝난 직후가 틈</td></tr>
+            <tr><td style="color:var(--amber)">늪의 여왕 (2지역)</td><td>혀 끌어당기기, 독 덩이, 점프 내려찍기, 올챙이 소환</td><td>붉은 띠 옆으로 피하기, 착지 직후가 틈</td></tr>
+            <tr><td style="color:var(--amber)">뿔의 기사 (3지역)</td><td>3연속 돌진, 뿔 휩쓸기, 그림자 분신, 정면 단단함</td><td>벽으로 유도해 박게 하기, 곰 웅크리기로 받으면 크게 흔들림</td></tr>
+            <tr><td style="color:var(--amber)">안개의 심장 (최종)</td><td>1. 무적·안개 무리 2. 안개 팔 내려찍기 3. 탄막</td><td>무리 20마리 정화 → 내려친 팔을 강타 → 내려앉을 때 몰아치기</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mini">웨이브 5부터 수식어가 붙습니다. 노란 점선 = 빠른, 보라 점 = 죽으면 둘로 분열.</p>
+    </div>
+    <div class="btns"><button class="btn primary" id="btnHelpClose" type="button">닫기</button></div>
+  </div>
+</div>
+
+<!-- Firebase (순위·성장 기록 저장). firebase-config.js가 비어 있으면 온라인 기능 없이 동작 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/net-firebase.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
