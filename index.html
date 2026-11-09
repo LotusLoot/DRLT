@@ -490,6 +490,20 @@ body.touch .bc-key{display:none}
   .pchip canvas{aspect-ratio:1/0.6}
   .pchip b{font-size:12px}
 }
+/* 휴대폰 세로: 위쪽 정보가 화면 밖으로 밀리지 않게 오른쪽을 세로로 쌓고, 일시정지는 맨 위 */
+@media (max-width:600px) and (orientation:portrait){
+  .hud .row{gap:8px}
+  .plate{gap:7px;padding:5px 10px 5px 5px;min-width:0;flex:0 1 auto}
+  .medal{width:48px;height:48px}
+  .fname-hud{font-size:17px}.role-hud{font-size:11px}
+  .hpbar,.wildbar{width:clamp(100px,36vw,150px)}
+  .hpnum{font-size:12px}
+  .right{flex-direction:column;align-items:flex-end;gap:5px;flex:none}
+  .gear{order:-1;width:38px;height:38px}
+  .pill{padding:3px 9px;gap:4px;font-size:11px}
+  .pill b{font-size:15px}
+  .pill .sicon{width:12px;height:12px}
+}
 @media (prefers-reduced-motion:reduce){.bar i,.tg input,.tg input::after,.fcard{transition:none}.logo .eye{animation:none}}
 </style>
 </head>
@@ -823,6 +837,7 @@ window.FIREBASE_CONFIG = {
 
 </script>
 <script>
+
 (() => {
 'use strict';
 
@@ -4147,9 +4162,10 @@ function drawMistArm(e) {
 function drawBossBar() {
   const e = G.boss; if (!e || e.dead) return;
   const B = BOSS[e.type], col = BOSS_COL[e.type] || '200,107,240';
-  const w = touchMode ? Math.min(380, VW - 450) : Math.min(600, VW * 0.52);
+  const portrait = touchMode && VH > VW;
+  const w = portrait ? VW - 60 : touchMode ? Math.min(380, VW - 450) : Math.min(600, VW * 0.52);
   if (w < 170) return;
-  const x0 = VW / 2 - w / 2, y0 = touchMode ? VH - 50 : VH - 150;
+  const x0 = VW / 2 - w / 2 + (portrait ? 4 : 0), y0 = portrait ? 196 : touchMode ? VH - 50 : VH - 150;
   const em = e.st === 'emerge' ? clamp(1 - e.stT / 1.6, 0, 1) : 1;
   const intro = G.bossIntro ? clamp((G.bossIntro.t - 2.2) / 0.6, 0, 1) : 1;
   e.trail = Math.max(e.hp, (e.trail === undefined ? e.hp : e.trail) - e.maxHp * 0.004);
@@ -4734,7 +4750,7 @@ function render() {
   if (G.flash) { const f = G.flash, a = f.a * (1 - f.t / f.life); ctx.fillStyle = `rgba(${f.col},${a})`; ctx.fillRect(0, 0, VW, VH); }
   if (G.intros.length && G.intros[0].t >= 0) {
     const it = G.intros[0], info = ENEMY_INFO[it.type], k = it.t / 3.4, a = k < 0.08 ? k / 0.08 : k > 0.86 ? (1 - k) / 0.14 : 1;
-    const w = Math.min(touchMode ? 420 : 460, VW - 32), h = 60, x0 = VW / 2 - w / 2, y0 = touchMode ? Math.max(104, VH * 0.26) : VH - 150;
+    const w = Math.min(touchMode ? 420 : 460, VW - 32), h = 60, x0 = VW / 2 - w / 2, y0 = touchMode ? (VH > VW ? Math.max(250, VH * 0.3) : Math.max(104, VH * 0.26)) : VH - 150;
     ctx.globalAlpha = a;
     ctx.fillStyle = 'rgba(10,18,15,0.88)'; ctx.strokeStyle = 'rgba(240,181,74,0.55)'; ctx.lineWidth = 1;
     ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, y0, w, h, 12); else ctx.rect(x0, y0, w, h); ctx.fill(); ctx.stroke();
